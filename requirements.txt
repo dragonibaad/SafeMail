@@ -1,0 +1,9 @@
+flask
+pandas
+numpy
+scikit-learn
+gensim
+tensorflow
+transformers
+joblib
+pytest
