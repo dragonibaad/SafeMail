@@ -1,1 +1,15 @@
 .~lock.Model_Evaluation_Report.docx#
+__pycache__/
+.pytest_cache/
+.venv/
+reports/
+
+# ML artifacts (too large for normal git)
+Models/*.pkl
+Models/*.npy
+Models/*.model
+Models/*.h5
+Models/*.kv
+Models/distilbert_model/
+Email Dataset/*.csv
+reports/
