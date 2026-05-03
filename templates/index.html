@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SafeMail</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>SafeMail - Intelligent Email Classification</h1>
+      <p>Classify emails as phishing or safe with model confidence and suspicious indicators.</p>
+
+      {% if error %}
+      <div class="error">{{ error }}</div>
+      {% endif %}
+
+      <section class="card">
+        <h2>Single Email Prediction</h2>
+        <form action="/predict" method="post">
+          <textarea name="email_text" rows="8" placeholder="Paste email content here...">{{ email_text or '' }}</textarea>
+          <button type="submit">Analyze Email</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Batch Prediction</h2>
+        <form action="/predict-batch" method="post" enctype="multipart/form-data">
+          <input type="file" name="batch_file" accept=".csv,.txt" />
+          <button type="submit">Analyze Batch</button>
+        </form>
+      </section>
+
+      {% if single_result %}
+      <section class="card">
+        <h2>Prediction Result</h2>
+        <p><strong>Final Label:</strong> {{ single_result.final_label }}</p>
+        <p><strong>Confidence:</strong> {{ "%.2f"|format(single_result.final_confidence * 100) }}%</p>
+
+        <h3>Per-Model Confidence</h3>
+        <ul>
+          {% for model_name, output in single_result.models.items() %}
+          <li>{{ model_name }}: {{ output.label }} ({{ "%.2f"|format(output.confidence * 100) }}%)</li>
+          {% endfor %}
+        </ul>
+
+        <h3>Suspicious Indicators</h3>
+        <p><strong>URLs:</strong> {{ single_result.indicators.urls|join(', ') if single_result.indicators.urls else 'None' }}</p>
+        <p><strong>Urgency Terms:</strong> {{ single_result.indicators.urgency_terms|join(', ') if single_result.indicators.urgency_terms else 'None' }}</p>
+
+        <h3>Highlighted Email</h3>
+        <div class="highlight-box">{{ single_result.highlighted_email_html | safe }}</div>
+      </section>
+      {% endif %}
+
+      {% if batch_stats %}
+      <section class="card">
+        <h2>Batch Dashboard</h2>
+        <p><strong>Total Emails:</strong> {{ batch_stats.total }}</p>
+        <p><strong>Phishing Detected:</strong> {{ batch_stats.phishing_count }}</p>
+        <p><strong>Safe Emails:</strong> {{ batch_stats.safe_count }}</p>
+        <p><strong>Phishing %:</strong> {{ batch_stats.phishing_percent }}%</p>
+      </section>
+      {% endif %}
+
+      {% if batch_results %}
+      <section class="card">
+        <h2>Batch Results</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Final Label</th>
+              <th>Confidence</th>
+              <th>Urgency Terms</th>
+              <th>URL Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in batch_results %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ r.final_label }}</td>
+              <td>{{ "%.2f"|format(r.final_confidence * 100) }}%</td>
+              <td>{{ r.indicators.urgency_terms|join(', ') if r.indicators.urgency_terms else 'None' }}</td>
+              <td>{{ r.indicators.urls|length }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+      {% endif %}
+    </main>
+  </body>
+</html>
